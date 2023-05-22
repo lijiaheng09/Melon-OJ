@@ -1,15 +1,15 @@
 from flask import Flask, url_for, redirect
+from flask_migrate import Migrate
 
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_pyfile("config.py")
 
-    from . import db
+    from .db import db
 
-    db.db.init_app(app)
-    with app.app_context():
-        db.db.create_all()
+    db.init_app(app)
+    migrate = Migrate(app, db)
 
     from . import problem
 
