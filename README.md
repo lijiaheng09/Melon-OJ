@@ -6,7 +6,8 @@
 
 Put configurations in file `instance/config.py`. For example:
 ```python
-SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:12345678@localhost/melon_oj' # required
+SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://root:12345678@localhost/melon_oj"
+SECRET_KEY = "dev"
 ```
 
 ### Upgrade (or init) the database schema
@@ -22,7 +23,7 @@ flask --app melon-oj run
 
 ## Development
 
-### After each change of the database models (in `db.py`)
+### After each change of the database models (in `melon-oj/db.py`)
 ```sh
 export FLASK_APP=melon-oj
 flask db migrate -m <message>

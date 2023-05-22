@@ -11,8 +11,10 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db)
 
+    from . import auth
     from . import problem
 
+    app.register_blueprint(auth.bp)
     app.register_blueprint(problem.bp)
 
     @app.route("/")
