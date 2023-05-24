@@ -29,3 +29,10 @@ class User(db.Model):
         from werkzeug.security import check_password_hash
 
         return check_password_hash(self._password, value)
+
+
+class Submission(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    problem_id = sa.Column(sa.ForeignKey(Problem.id))
+    user_id = sa.Column(sa.ForeignKey(User.id))
+    answer = sa.Column(sa.Text, nullable=False)
