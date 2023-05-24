@@ -1,5 +1,5 @@
-from flask import Blueprint, request, g, render_template, redirect, url_for
-from .db import db, Problem
+from flask import Blueprint, request, g, render_template, flash, redirect, url_for
+from .db import db, Problem, Submission
 from . import auth
 
 bp = Blueprint("problem", __name__, url_prefix="/problem")
@@ -26,6 +26,7 @@ def create():
     db.session.commit()
     return redirect(url_for("problem.edit", problem_id=p.id))
 
+
 @bp.route("/edit/<int:problem_id>", methods=["GET", "POST"])
 def edit(problem_id: int):
     p = db.session.execute(
@@ -42,8 +43,11 @@ def edit(problem_id: int):
 @bp.route("/submit/<int:problem_id>", methods=["POST"])
 @auth.login_required
 def submit(problem_id: int):
-    return {
-        "user_id": g.user.id,
-        "problem_id": problem_id,
-        "answer": request.values["answer"],
-    }
+    sub = Submission(
+        problem_id=problem_id, user_id=g.user.id, answer=request.values["answer"]
+    )
+    db.session.add(sub)
+    db.session.commit()
+    # TODO: show submission
+    flash(f'Successfully submitted. Submission ID: {sub.id}')
+    return redirect(request.referrer)
