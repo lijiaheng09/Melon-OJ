@@ -7,6 +7,7 @@ db = SQLAlchemy()
 class Problem(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     title = sa.Column(sa.String(128), nullable=False)
+    statement = sa.Column(sa.Text, nullable=False)
 
 
 class User(db.Model):
