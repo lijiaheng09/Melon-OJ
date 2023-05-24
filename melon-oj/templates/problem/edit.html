@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Edit Problem {{p.id}}{% endblock %}</h1>
+<a href="{{ url_for('problem.show', problem_id=p.id) }}">Show</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" onchange="formChange()">
+  <label for="title">Title</label>
+  <input name="title" id="title" value="{{ p.title }}" required />
+  <label for="statement">Statement</label>
+  <textarea name="statement" id="statement">{{ p.statement }}</textarea>
+  <input type="submit" value="Apply" />
+</form>
+
+<h1>Preview</h1>
+<div id="preview-statement"></div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+<script>
+  function formChange() {
+    document.getElementById('preview-statement').innerHTML =
+      marked.parse(
+        document.getElementById('statement').value);
+    MathJax.typeset();
+  }
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']]
+    }
+  };
+  formChange();
+</script>
+{% endblock %}

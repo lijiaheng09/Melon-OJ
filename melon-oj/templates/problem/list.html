@@ -2,6 +2,7 @@
 
 {% block header %}
   <h1>{% block title %}Problems{% endblock %}</h1>
+  <a href="{{ url_for('problem.create') }}">Create</a>
 {% endblock %}
 
 {% block content %}
@@ -13,7 +14,7 @@
   {% for p in probs %}
   <tr>
     <td>{{ p.id }}</td>
-    <td>{{ p.title }}</td>
+    <td><a href="{{ url_for('problem.show', problem_id=p.id) }}">{{ p.title }}</a></td>
   </tr>
   {% endfor %}
 </table>
