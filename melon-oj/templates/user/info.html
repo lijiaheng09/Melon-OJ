@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}[User {{user.id}}] {{user.name}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<h2>Submissions</h2>
+<div>
+  {% for sub in submissions %}
+  Submission #{{ sub.id }} of <a href="{{ url_for('problem.show', problem_id=sub.problem_id) }}">Problem {{ sub.problem_id }}</a> <br />
+  {% endfor %}
+</div>
+
+{% if g.user and g.user.id == user.id %}
+<h2>Information</h2>
+<form method="post" action="{{ url_for('user.update_info') }}">
+  <label for="username">Username</label>
+  <input name="username" id="username" value="{{ user.name }}" required />
+  <input type="submit" value="Update" />
+</form>
+<h2>Security</h2>
+<form method="post" action="{{ url_for('user.update_password') }}">
+  <label for="original_password">Original Password</label>
+  <input type="password" name="original_password" id="original_password" required />
+  <label for="new_password">New Password</label>
+  <input type="password" name="new_password" id="new_password" required />
+  <input type="submit" value="Update" />
+</form>
+{% endif %}
+{% endblock %}

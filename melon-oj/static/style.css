@@ -27,7 +27,7 @@ hr {
 
 nav {
   background: lightgray;
-  display: flex;
+  display: flow-root;
   align-items: center;
   padding: 0 0.5rem;
 }
