@@ -5,6 +5,7 @@
   <h1 style="float: left"><a href="{{ url_for('index') }}">Melon OJ</a></h1>
   <ul style="float: left;">
     <li><a href="{{ url_for('problem.ls') }}">Problems</a></li>
+    <li><a href="{{ url_for('submission.ls') }}">Submissions</a></li>
   </ul>
   <ul style="float: right;">
     {% if g.user %}

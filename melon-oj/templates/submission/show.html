@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}[Submissions {{ s.id }}]{% endblock %}</h1>
+  <!-- TODO(?): search submissions -->
+{% endblock %}
+
+{% block content %}
+<table border="1" width="100%">
+  <tr>
+    <th>ID</th>
+    <th>Problem</th>
+    <th>User</th>
+    <th>Verdict</th>
+    <th>Score</th>
+    <th>Time</th>
+  </tr>
+
+  <tr>
+    <td align="center"><a href="{{ url_for('submission.show', submission_id=s.id) }}">{{ s.id }}</a></td>
+    <td align="center"><a href="{{ url_for('problem.show', problem_id=s.problem_id) }}">{{ s.title }}</a></td>
+    <td align="center"><a href="{{ url_for('user.info', user_id=s.user_id) }}">{{ s.name }}</a></td>
+    <td align="center">{{ s.verdict }}</td>
+    <td align="center">{{ s.score }}</td>
+    <td align="center">{{ s.time }}</td>
+  </tr>
+</table>
+{{s.answer}}
+{% endblock %}
