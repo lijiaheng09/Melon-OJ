@@ -44,3 +44,10 @@ class Submission(db.Model):
     problem_id = sa.Column(sa.ForeignKey(Problem.id))
     user_id = sa.Column(sa.ForeignKey(User.id))
     answer = sa.Column(sa.Text, nullable=False)
+    time = sa.Column(sa.DateTime)
+    verdict = sa.Column(
+        sa.Enum("Waiting", "Judging", "Accepted", "Wrong Answer"),
+        nullable=False,
+        default="Waiting",
+    )
+    score = sa.Column(sa.Float)  # ranging [0.0, 1.0] in most cases
