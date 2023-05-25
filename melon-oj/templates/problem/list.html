@@ -6,15 +6,17 @@
 {% endblock %}
 
 {% block content %}
-<table border="1">
+<table border="1" width="100%">
   <tr>
     <th>ID</th>
     <th>Title</th>
+    <th>Visibility</th>
   </tr>
   {% for p in probs %}
   <tr>
-    <td>{{ p.id }}</td>
-    <td><a href="{{ url_for('problem.show', problem_id=p.id) }}">{{ p.title }}</a></td>
+    <td align="center">{{ p.id }}</td>
+    <td align="left"><a href="{{ url_for('problem.show', problem_id=p.id) }}">{{ p.title }}</a></td>
+    <td align="center">{{ p.visibility }}</td>
   </tr>
   {% endfor %}
 </table>

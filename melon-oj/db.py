@@ -8,7 +8,9 @@ class Problem(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     title = sa.Column(sa.String(128), nullable=False)
     statement = sa.Column(sa.Text, nullable=False)
-    visibility = sa.Column(sa.Enum('Private', 'Public'), nullable=False, default='Private')
+    visibility = sa.Column(
+        sa.Enum("Private", "Public"), nullable=False, default="Private"
+    )
 
 
 class User(db.Model):

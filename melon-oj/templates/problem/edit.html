@@ -9,9 +9,31 @@
 <form method="post" onchange="formChange()">
   <label for="title">Title</label>
   <input name="title" id="title" value="{{ p.title }}" required />
+  <label for="visibility">Visibility</label>
+  <div>
+    {% for v in ['Private', 'Public'] %}
+    <input type="radio" name="visibility" value="{{ v }}" {{ 'checked' if p.visibility == v else '' }} />{{ v }}
+    {% endfor %}
+  </div>
   <label for="statement">Statement</label>
   <textarea name="statement" id="statement">{{ p.statement }}</textarea>
   <input type="submit" value="Apply" />
+</form>
+
+<h1>Managers</h1>
+<form method="post" action="{{ url_for('problem.drop_managers', problem_id=p.id) }}">
+  <label>Drop Managers</label>
+  <div>
+  {% for m in managers %}
+  <input type="checkbox" name="{{ m.id }}" {{ 'disabled' if m.id == g.user.id else '' }} />{{ m.name }}
+  {% endfor %}
+  </div>
+  <input type="submit" value="Drop" />
+</form>
+<form method="post" action="{{ url_for('problem.add_manager', problem_id=p.id) }}">
+  <label for="manager">Add Manager</label>
+  <input name="manager" required />
+  <input type="submit" value="Add" />
 </form>
 
 <h1>Preview</h1>
