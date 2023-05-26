@@ -71,3 +71,12 @@ class ContestProblem(db.Model):
     idx = sa.Column(sa.Integer, primary_key=True)
     problem_id = sa.Column(sa.ForeignKey(Problem.id))
     score = sa.Column(sa.Float)
+
+
+class ContestSubmission(db.Model):
+    contest_id = sa.Column(sa.ForeignKey(Contest.id), nullable=False)
+    idx = sa.Column(sa.Integer, nullable=False)
+    submission_id = sa.Column(sa.ForeignKey(Submission.id), primary_key=True)
+    sa.ForeignKeyConstraint(
+        (contest_id, idx), (ContestProblem.contest_id, ContestProblem.idx)
+    )
