@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Jury{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<table border="1" width="100%">
+  <tr>
+    <th>ID</th>
+    <th>Problem</th>
+    <th>User</th>
+    <th>Time</th>
+  </tr>
+  {% for s in submissions %}
+  <tr>
+    <td align="center"><a href="{{ url_for('submission.show', submission_id=s.id) }}">{{ s.id }}</a></td>
+    <td align="center"><a href="{{ url_for('problem.show', problem_id=s.problem_id) }}">{{ s.title }}</a></td>
+    <td align="center"><a href="{{ url_for('user.info', user_id=s.user_id) }}">{{ s.name }}</a></td>
+    <td align="center">{{ s.time }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

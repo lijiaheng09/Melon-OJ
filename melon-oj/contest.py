@@ -185,10 +185,20 @@ def submit_problem(contest_id: int, idx: int):
 @bp.route("/show_submission/<int:submission_id>")
 def show_submission(submission_id: int):
     cs = db.session.execute(
-        sa.select(ContestSubmission).where(
-            ContestSubmission.submission_id == submission_id
+        sa.select(
+            ContestSubmission.contest_id,
+            ContestSubmission.idx,
+            Submission.user_id
+        ).select_from(ContestSubmission, Submission).where(
+            (ContestSubmission.submission_id == submission_id)
+            & (ContestSubmission.submission_id == Submission.id)
         )
-    ).scalar_one()
+    ).one()
+    # permission check: only contest manager & oneself can view this contest submission
+    if not g.user:
+        abort(403)
+    if g.user.id != cs.user_id and not is_manager(cs.contest_id):
+        abort(403)
     return submission.show(
         submission_id=submission_id, contest_info={"id": cs.contest_id, "idx": cs.idx}
     )

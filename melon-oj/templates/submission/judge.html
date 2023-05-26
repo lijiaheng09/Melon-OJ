@@ -1,10 +1,8 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}[Submission {{ s.id }}]{% endblock %}</h1>
-  {% if is_manager %}
-  <a href="{{ url_for('submission.judge', submission_id=s.id, contest_info=contest_info) }}">Judge</a>
-  {% endif %}
+  <h1>{% block title %}[Judge Submission {{ s.id }}]{% endblock %}</h1>
+  <a href="{{ url_for('submission.show', submission_id=s.id, contest_info=contest_info) }}">Show</a>
 {% endblock %}
 
 {% block content %}
@@ -30,4 +28,8 @@
 <pre style="border-style: groove;">
 {{s.answer}}
 </pre>
+<form method="post" action="{{ url_for('submission.judge', submission_id=s.id, contest_info=contest_info)}}">
+Input Score: <input name="score" value="{{ '' if s.score == None else s.score }}">
+<input type="submit" value="Score It!">
+</form>
 {% endblock %}

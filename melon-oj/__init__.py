@@ -16,12 +16,14 @@ def create_app():
     from . import user
     from . import submission
     from . import contest
+    from . import jury
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(problem.bp)
     app.register_blueprint(user.bp)
     app.register_blueprint(submission.bp)
     app.register_blueprint(contest.bp)
+    app.register_blueprint(jury.bp)
 
     @app.route("/")
     def index():
