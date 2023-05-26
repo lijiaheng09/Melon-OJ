@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}[Contest {{c.id}}] {{c.title}}{% endblock %}</h1>
+<a href="{{ url_for('contest.edit', contest_id=c.id) }}">Edit</a>
+{% endblock %}
+
+{% block content %}
+<table border="1" width="100%">
+  <tr>
+    <th>ID</th>
+    <td>{{ c.id }}</td>
+  </tr>
+  <tr>
+    <th width="20%">Title</th>
+    <td width="80%">{{ c.title }}</td>
+  </tr>
+  <tr>
+    <th>Start Time</th>
+    <td>{{ c.start_time }}</td>
+  </tr>
+  <tr>
+    <th>End Time</th>
+    <td>{{ c.end_time }}</td>
+  </tr>
+</table>
+{% endblock %}

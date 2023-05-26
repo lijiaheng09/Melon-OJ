@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Contests{% endblock %}</h1>
+  <a href="{{ url_for('contest.create') }}">Create</a>
+{% endblock %}
+
+{% block content %}
+{% for (title, cs) in [
+    ("Running", running_contests),
+    ("Upcoming", upcoming_contests),
+    ("Ended", ended_contests)
+  ] %}
+<h2>{{ title }}</h2>
+<table border="1" width="100%">
+  <tr>
+    <th width="10%">ID</th>
+    <th width="40%">Title</th>
+    <th width="25%">Start Time</th>
+    <th width="25%">End Time</th>
+  </tr>
+  {% for c in cs %}
+  <tr>
+    <td align="center">{{ c.id }}</td>
+    <td align="center"><a href="{{ url_for('contest.show', contest_id=c.id) }}">{{ c.title }}</a></td>
+    <td align="center">{{ c.start_time }}</td>
+    <td align="center">{{ c.end_time }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endfor %}
+{% endblock %}

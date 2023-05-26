@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Edit Contest {{c.id}}{% endblock %}</h1>
+<a href="{{ url_for('contest.show', contest_id=c.id) }}">Show</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+  <label for="title">Title</label>
+  <input name="title" id="title" value="{{ c.title }}" required/>
+  <label for="start_time">Start Time</label>
+  <div>
+  <input type="datetime-local" name="start_time" id="start_time" value="{{ c.start_time }}"/>
+  <button onclick="getElementById('start_time').value = null;">None</button>
+  </div>
+  <label for="end_time">End Time</label>
+  <div>
+    <input type="datetime-local" name="end_time" id="end_time" value="{{ c.end_time }}"/>
+    <button onclick="getElementById('end_time').value = null;">None</button>
+  </div>
+  <input type="submit" value="Apply" />
+</form>
+{% endblock %}
