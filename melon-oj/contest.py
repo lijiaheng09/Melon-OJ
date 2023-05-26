@@ -104,14 +104,14 @@ def show(contest_id: int):
         c.start_time is not None and c.start_time <= datetime.datetime.now()
     ) or is_manager(contest_id):
         problems = db.session.execute(
-            sa.select(ContestProblem.idx, Problem.title)
+            sa.select(ContestProblem.idx, ContestProblem.score, Problem.title)
             .select_from(
                 sa.outerjoin(
                     ContestProblem, Problem, ContestProblem.problem_id == Problem.id
                 )
             )
             .where(ContestProblem.contest_id == contest_id)
-        )
+        ).all()
     return render_template(
         "contest/show.html", c=c, is_manager=is_manager(contest_id), problems=problems
     )

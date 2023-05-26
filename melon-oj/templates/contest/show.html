@@ -32,16 +32,24 @@
 <table border="1" width="100%">
   <tr>
     <th width="10%">#</th>
-    <th width="70%">Title</th>
-    <th width="20%">Score</th>
+    <th width="60%">Title</th>
+    <th width="15%">Score</th>
+    <th width="15%">Total Score</th>
   </tr>
   {% for p in problems %}
   <tr>
     <td align="center">{{ p.idx }}</td>
     <td align="center"><a href="{{ url_for('contest.show_problem', contest_id=c.id, idx=p.idx) }}">{{ p.title or '' }}</a></td>
     <td align="center"></td>
+    <td align="center">{{ p.score if p.score != None else '' }}</td>
   </tr>
   {% endfor %}
+  <tr>
+    <th>Total</th>
+    <td></td>
+    <td></td>
+    <td align="center">{{ problems | sum(attribute='score') }}</td>
+  </tr>
 </table>
 {% endif %}
 
