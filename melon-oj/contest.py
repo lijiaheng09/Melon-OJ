@@ -20,6 +20,7 @@ from .db import (
     User,
     Problem,
     ContestSubmission,
+    ContestLastSubmission,
     Submission,
 )
 from . import auth
@@ -103,17 +104,86 @@ def show(contest_id: int):
     if (
         c.start_time is not None and c.start_time <= datetime.datetime.now()
     ) or is_manager(contest_id):
+        user_id = g.user.id if g.user else None
         problems = db.session.execute(
-            sa.select(ContestProblem.idx, ContestProblem.score, Problem.title)
+            sa.select(
+                ContestProblem.idx,
+                ContestProblem.score.label("full_score"),
+                Problem.title,
+                Submission.id.label("submission_id"),
+                Submission.score.label("my_score"),
+            )
             .select_from(
                 sa.outerjoin(
-                    ContestProblem, Problem, ContestProblem.problem_id == Problem.id
+                    ContestProblem,
+                    Problem,
+                    (ContestProblem.problem_id == Problem.id),
+                ).outerjoin(
+                    sa.join(
+                        ContestLastSubmission,
+                        Submission,
+                        (ContestLastSubmission.submission_id == Submission.id)
+                        & (Submission.user_id == user_id),
+                    ),
+                    (ContestProblem.contest_id == ContestLastSubmission.contest_id)
+                    & (ContestProblem.idx == ContestLastSubmission.idx),
                 )
             )
-            .where(ContestProblem.contest_id == contest_id)
+            .where((ContestProblem.contest_id == contest_id))
         ).all()
+
+        tot_score_expr = sa.func.sum(Submission.score * ContestProblem.score)
+        basic_ranklist = (
+            sa.select(
+                ContestLastSubmission.user_id,
+                User.name.label("user_name"),
+                tot_score_expr.label("total_score"),
+            )
+            .select_from(ContestProblem, ContestLastSubmission, Submission, User)
+            .where(
+                (ContestProblem.contest_id == contest_id)
+                & (ContestProblem.contest_id == ContestLastSubmission.contest_id)
+                & (ContestProblem.idx == ContestLastSubmission.idx)
+                & (ContestLastSubmission.submission_id == Submission.id)
+                & (Submission.user_id == User.id)
+            )
+            .group_by(ContestLastSubmission.user_id, User.name)
+            .order_by(tot_score_expr.desc())
+        )
+        tabs = [
+            sa.select(
+                ContestLastSubmission.user_id,
+                (Submission.score * ContestProblem.score).label(f"score_{p.idx}"),
+                Submission.id.label(f"submission_id_{p.idx}"),
+            )
+            .select_from(ContestProblem, ContestLastSubmission, Submission, User)
+            .where(
+                (ContestProblem.contest_id == contest_id)
+                & (ContestProblem.idx == p.idx)
+                & (ContestProblem.contest_id == ContestLastSubmission.contest_id)
+                & (ContestProblem.idx == ContestLastSubmission.idx)
+                & (ContestLastSubmission.submission_id == Submission.id)
+                & (Submission.user_id == User.id)
+            )
+            for p in problems
+        ]
+        col_uid = basic_ranklist.columns["user_id"]
+        ranklist = basic_ranklist
+        for t in tabs:
+            ranklist = sa.outerjoin(ranklist, t, col_uid == t.columns["user_id"])
+        ranklist = db.session.execute(
+            sa.select(
+                basic_ranklist.columns,
+                *[sa.column(f"score_{p.idx}") for p in problems],
+                *[sa.column(f"submission_id_{p.idx}") for p in problems],
+            ).select_from(ranklist)
+        )
     return render_template(
-        "contest/show.html", c=c, is_manager=is_manager(contest_id), problems=problems
+        "contest/show.html",
+        c=c,
+        is_manager=is_manager(contest_id),
+        problems=problems,
+        ranklist=ranklist,
     )
 
 
@@ -186,10 +256,10 @@ def submit_problem(contest_id: int, idx: int):
 def show_submission(submission_id: int):
     cs = db.session.execute(
         sa.select(
-            ContestSubmission.contest_id,
-            ContestSubmission.idx,
-            Submission.user_id
-        ).select_from(ContestSubmission, Submission).where(
+            ContestSubmission.contest_id, ContestSubmission.idx, Submission.user_id
+        )
+        .select_from(ContestSubmission, Submission)
+        .where(
             (ContestSubmission.submission_id == submission_id)
             & (ContestSubmission.submission_id == Submission.id)
         )
