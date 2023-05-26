@@ -2,23 +2,35 @@
 
 {% block header %}
 <h1>{% block title %}
-{% if contest_id %}
-[Contest Problem {{contest_id}}-{{idx}}]
+{% if contest_info %}
+[Contest Problem {{contest_info['id']}}-{{contest_info['idx']}}]
 {% else %}
 [Problem {{p.id}}]
 {% endif %}
 {{p.title}}{% endblock %}</h1>
+<div>
+{% if contest_info %}
+<a href="{{ url_for('contest.show', contest_id=contest_info['id']) }}">Contest</a>
+{% endif %}
+{% if contest_info and not contest_info['is_running'] %}
+<a href="{{ url_for('problem.show', problem_id=p.id) }}">Practice</a>
+{% endif %}
 {% if is_manager %}
 <a href="{{ url_for('problem.edit', problem_id=p.id) }}">Edit</a>
 {% endif %}
+</div>
 {% endblock %}
 
 {% block content %}
 <div id="statement">{{ p.statement|safe }}</div>
-<form method="post" action="{{ url_for('problem.submit', problem_id=p.id) }}">
+<form method="post" action="{{
+    url_for('contest.submit_problem', contest_id=contest_info['id'], idx=contest_info['idx'])
+    if contest_info
+    else url_for('problem.submit', problem_id=p.id)
+  }}">
   <label for="answer">Your Answer</label>
   <textarea name="answer" id="answer" style="font-family: monospace;" required></textarea>
-  <input type="submit" value="Submit" />
+  <input type="submit" value="Submit" {{ 'disabled' if (contest_info and not contest_info['is_running']) else '' }} />
 </form>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

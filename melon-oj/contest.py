@@ -12,9 +12,19 @@ from flask import (
 )
 import sqlalchemy as sa
 import sqlalchemy.exc
-from .db import db, Contest, ContestManager, ContestProblem, User, Problem
+from .db import (
+    db,
+    Contest,
+    ContestManager,
+    ContestProblem,
+    User,
+    Problem,
+    ContestSubmission,
+    Submission,
+)
 from . import auth
 from . import problem
+from . import submission
 
 bp = Blueprint("contest", __name__, url_prefix="/contest")
 
@@ -90,7 +100,9 @@ def show(contest_id: int):
         sa.select(Contest).where(Contest.id == contest_id)
     ).scalar_one()
     problems = None
-    if (c.start_time is not None and c.start_time <= datetime.datetime.now()) or is_manager(contest_id):
+    if (
+        c.start_time is not None and c.start_time <= datetime.datetime.now()
+    ) or is_manager(contest_id):
         problems = db.session.execute(
             sa.select(ContestProblem.idx, Problem.title)
             .select_from(
@@ -107,19 +119,79 @@ def show(contest_id: int):
 
 @bp.route("/show_problem/<int:contest_id>/<int:idx>")
 def show_problem(contest_id: int, idx: int):
-    start_time = db.session.execute(
-        sa.select(Contest.start_time)
+    c = db.session.execute(
+        sa.select(Contest.start_time, Contest.end_time)
         .select_from(Contest)
         .where(Contest.id == contest_id)
-    ).scalar_one()
-    if not (start_time <= datetime.datetime.now()) and not is_manager(contest_id):
+    ).one()
+    now = datetime.datetime.now()
+    if not (c.start_time <= now) and not is_manager(contest_id):
         abort(403)
     problem_id = db.session.execute(
         sa.select(ContestProblem.problem_id)
         .select_from(ContestProblem)
         .where((ContestProblem.contest_id == contest_id) & (ContestProblem.idx == idx))
     ).scalar_one()
-    return problem.show(problem_id=problem_id, contest_id=contest_id, idx=idx)
+    return problem.show(
+        problem_id=problem_id,
+        contest_info={
+            "id": contest_id,
+            "idx": idx,
+            "is_running": c.start_time <= now < c.end_time,
+        },
+    )
+
+
+@bp.route("/submit_problem/<int:contest_id>/<int:idx>", methods=["POST"])
+@auth.login_required
+def submit_problem(contest_id: int, idx: int):
+    c = db.session.execute(
+        sa.select(Contest.start_time, Contest.end_time)
+        .select_from(Contest)
+        .where(Contest.id == contest_id)
+    ).one()
+    now = datetime.datetime.now()
+    if not (c.start_time <= now < c.end_time):
+        flash("Contest not running.")
+        return redirect(
+            request.referrer
+            or url_for("contest.show_problem", contest_id=contest_id, idx=idx)
+        )
+    problem_id = db.session.execute(
+        sa.select(ContestProblem.problem_id).where(
+            (ContestProblem.contest_id == contest_id) & (ContestProblem.idx == idx)
+        )
+    ).scalar_one()
+    sub = Submission(
+        problem_id=problem_id,
+        user_id=g.user.id,
+        answer=request.form["answer"],
+        time=now,
+    )
+    db.session.add(sub)
+    db.session.flush()
+    db.session.add(
+        ContestSubmission(contest_id=contest_id, idx=idx, submission_id=sub.id)
+    )
+    db.session.commit()
+    return redirect(
+        url_for(
+            "contest.show_submission",
+            submission_id=sub.id,
+        )
+    )
+
+
+@bp.route("/show_submission/<int:submission_id>")
+def show_submission(submission_id: int):
+    cs = db.session.execute(
+        sa.select(ContestSubmission).where(
+            ContestSubmission.submission_id == submission_id
+        )
+    ).scalar_one()
+    return submission.show(
+        submission_id=submission_id, contest_info={"id": cs.contest_id, "idx": cs.idx}
+    )
 
 
 @bp.route("/edit/<int:contest_id>", methods=["GET", "POST"])

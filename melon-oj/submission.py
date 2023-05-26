@@ -40,7 +40,8 @@ def ls():
     return render_template("submission/list.html", submissions=submissions)
 
 @bp.route("/show/<int:submission_id>")
-def show(submission_id: int):
+def show(submission_id: int, contest_info=None):
+    # TODO: check permission.
     s = db.session.execute(
         sa.select(
             Submission.id,
@@ -51,4 +52,9 @@ def show(submission_id: int):
             (Submission.id == submission_id) & (Submission.problem_id == Problem.id) & (Submission.user_id == User.id)
         )
     ).one()
-    return render_template("submission/show.html", s=s, is_manager=is_manager(s.problem_id))
+    return render_template(
+        "submission/show.html",
+        s=s,
+        is_manager=is_manager(s.problem_id),
+        contest_info=contest_info
+    )

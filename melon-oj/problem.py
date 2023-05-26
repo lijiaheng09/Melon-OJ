@@ -59,15 +59,15 @@ def manager_required(view):
 
 
 @bp.route("/show/<int:problem_id>")
-def show(problem_id: int, contest_id=None, idx=None):
+def show(problem_id: int, contest_info=None):
     p = db.session.execute(
         sa.select(Problem).where(Problem.id == problem_id)
     ).scalar_one()
     ismgr = is_manager(problem_id)
-    if contest_id is None and p.visibility != "Public" and not ismgr:
+    if contest_info is None and p.visibility != "Public" and not ismgr:
         abort(403)
     return render_template(
-        "problem/show.html", p=p, is_manager=ismgr, contest_id=contest_id, idx=idx
+        "problem/show.html", p=p, is_manager=ismgr, contest_info=contest_info
     )
 
 
