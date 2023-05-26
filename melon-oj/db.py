@@ -63,3 +63,11 @@ class Contest(db.Model):
 class ContestManager(db.Model):
     contest_id = sa.Column(sa.ForeignKey(Contest.id), primary_key=True)
     manager_id = sa.Column(sa.ForeignKey(User.id), primary_key=True)
+
+
+class ContestProblem(db.Model):
+    contest_id = sa.Column(sa.ForeignKey(Contest.id), primary_key=True)
+    # index of the problem inside the contest
+    idx = sa.Column(sa.Integer, primary_key=True)
+    problem_id = sa.Column(sa.ForeignKey(Problem.id))
+    score = sa.Column(sa.Float)
