@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+import sqlalchemy_utils
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -79,4 +80,23 @@ class ContestSubmission(db.Model):
     submission_id = sa.Column(sa.ForeignKey(Submission.id), primary_key=True)
     sa.ForeignKeyConstraint(
         (contest_id, idx), (ContestProblem.contest_id, ContestProblem.idx)
+    )
+
+
+class ContestLastSubmission(db.Model):
+    selectable = (
+        sa.select(
+            ContestSubmission.contest_id,
+            ContestSubmission.idx,
+            Submission.user_id,
+            sa.func.max(Submission.id).label("submission_id"),
+        )
+        .select_from(ContestSubmission, Submission)
+        .where(ContestSubmission.submission_id == Submission.id)
+        .group_by(
+            ContestSubmission.contest_id, ContestSubmission.idx, Submission.user_id
+        )
+    )
+    __table__ = sqlalchemy_utils.create_view(
+        "contest_last_submission", selectable, db.metadata
     )
