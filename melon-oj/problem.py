@@ -12,6 +12,7 @@ from flask import (
 )
 from .db import db, Problem, User, ProblemManager, Submission
 from . import auth
+import sqlalchemy as sa
 import sqlalchemy.exc
 
 bp = Blueprint("problem", __name__, url_prefix="/problem")
@@ -20,11 +21,11 @@ bp = Blueprint("problem", __name__, url_prefix="/problem")
 @bp.route("/list")
 def ls():
     user_id = g.user.id if g.user is not None else None
-    my_probs = db.select(ProblemManager.problem_id).where(
+    my_probs = sa.select(ProblemManager.problem_id).where(
         ProblemManager.manager_id == user_id
     )
     probs = db.session.execute(
-        db.select(Problem).where(
+        sa.select(Problem).where(
             (Problem.visibility == "Public") | Problem.id.in_(my_probs)
         )
     ).scalars()
@@ -35,7 +36,7 @@ def is_manager(problem_id: int):
     return (
         g.user is not None
         and db.session.execute(
-            db.select(ProblemManager)
+            sa.select(ProblemManager)
             .where(
                 (ProblemManager.problem_id == problem_id)
                 & (ProblemManager.manager_id == g.user.id)
@@ -60,7 +61,7 @@ def manager_required(view):
 @bp.route("/show/<int:problem_id>")
 def show(problem_id: int):
     p = db.session.execute(
-        db.select(Problem).where(Problem.id == problem_id)
+        sa.select(Problem).where(Problem.id == problem_id)
     ).scalar_one()
     return render_template("problem/show.html", p=p, is_manager=is_manager(problem_id))
 
@@ -80,11 +81,11 @@ def create():
 @manager_required
 def edit(problem_id: int):
     p = db.session.execute(
-        db.select(Problem).where(Problem.id == problem_id)
+        sa.select(Problem).where(Problem.id == problem_id)
     ).scalar_one()
     if request.method == "GET":
         managers = db.session.execute(
-            db.select(User)
+            sa.select(User)
             .select_from(User, ProblemManager)
             .where(
                 (ProblemManager.problem_id == problem_id)
@@ -105,7 +106,7 @@ def drop_managers(problem_id: int):
     if g.user.id in request.values.keys():
         abort(400)
     db.session.execute(
-        db.delete(ProblemManager).where(
+        sa.delete(ProblemManager).where(
             (ProblemManager.problem_id == problem_id)
             & (ProblemManager.manager_id.in_(request.values.keys()))
         )
@@ -119,7 +120,7 @@ def drop_managers(problem_id: int):
 def add_manager(problem_id: int):
     try:
         manager_id = db.session.execute(
-            db.select(User.id).where(User.name == request.values["manager"])
+            sa.select(User.id).where(User.name == request.values["manager"])
         ).scalar_one()
         db.session.add(ProblemManager(problem_id=problem_id, manager_id=manager_id))
         db.session.commit()
@@ -134,8 +135,10 @@ def add_manager(problem_id: int):
 @auth.login_required
 def submit(problem_id: int):
     sub = Submission(
-        problem_id=problem_id, user_id=g.user.id, answer=request.values["answer"],
-        time=datetime.datetime.now()
+        problem_id=problem_id,
+        user_id=g.user.id,
+        answer=request.values["answer"],
+        time=datetime.datetime.now(),
     )
     db.session.add(sub)
     db.session.commit()

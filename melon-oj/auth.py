@@ -1,8 +1,16 @@
 import functools
 from flask import (
-    Blueprint, request, g, session, render_template, redirect, url_for, flash
+    Blueprint,
+    request,
+    g,
+    session,
+    render_template,
+    redirect,
+    url_for,
+    flash,
 )
 from .db import db, User
+import sqlalchemy as sa
 import sqlalchemy.exc
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -37,7 +45,7 @@ def login():
     password = request.form["password"]
     try:
         user: User = db.session.execute(
-            db.select(User).where(User.name == username)
+            sa.select(User).where(User.name == username)
         ).scalar_one()
         if user.check_password(password):
             session["user_id"] = user.id
@@ -61,7 +69,7 @@ def load_logged_in_user():
         g.user = None
     else:
         g.user = db.session.execute(
-            db.select(User).where(User.id == user_id)
+            sa.select(User).where(User.id == user_id)
         ).scalar_one()
 
 

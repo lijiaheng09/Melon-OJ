@@ -1,15 +1,16 @@
 from flask import Blueprint, request, g, render_template, redirect, flash, url_for
 from .db import db, User, Submission
 from . import auth
+import sqlalchemy as sa
 
 bp = Blueprint("user", __name__, "/user")
 
 
 @bp.route("/info/<int:user_id>")
 def info(user_id: int):
-    user = db.session.execute(db.select(User).where(User.id == user_id)).scalar_one()
+    user = db.session.execute(sa.select(User).where(User.id == user_id)).scalar_one()
     solved_problems = db.session.execute(
-        db.select(Submission.problem_id.distinct().label("problem_id"))
+        sa.select(Submission.problem_id.distinct().label("problem_id"))
         .select_from(Submission)
         .where((Submission.user_id == user_id) & (Submission.verdict == "Accepted"))
         .order_by(Submission.problem_id)

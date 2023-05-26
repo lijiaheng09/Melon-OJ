@@ -20,15 +20,15 @@ bp = Blueprint("submission", __name__, url_prefix="/submission")
 @bp.route("/list")
 def ls():
     user_id = g.user.id if g.user is not None else None
-    probs = db.select(Problem.id).where(
+    probs = sa.select(Problem.id).where(
         (Problem.visibility == "Public") | Problem.id.in_(
-            db.select(ProblemManager.problem_id).where(
+            sa.select(ProblemManager.problem_id).where(
                 ProblemManager.manager_id == user_id
             )
         )
     )
     submissions = db.session.execute(
-        db.select(
+        sa.select(
             Submission.id,
             Submission.problem_id, Problem.title,
             Submission.user_id, User.name,
@@ -42,7 +42,7 @@ def ls():
 @bp.route("/show/<int:submission_id>")
 def show(submission_id: int):
     s = db.session.execute(
-        db.select(
+        sa.select(
             Submission.id,
             Submission.problem_id, Problem.title,
             Submission.user_id, User.name,
