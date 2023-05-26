@@ -8,12 +8,13 @@ bp = Blueprint("user", __name__, "/user")
 @bp.route("/info/<int:user_id>")
 def info(user_id: int):
     user = db.session.execute(db.select(User).where(User.id == user_id)).scalar_one()
-    submissions = db.session.execute(
-        db.select(Submission.id, Submission.problem_id)
+    solved_problems = db.session.execute(
+        db.select(Submission.problem_id.distinct().label("problem_id"))
         .select_from(Submission)
-        .where(Submission.user_id == user_id)
+        .where((Submission.user_id == user_id) & (Submission.verdict == "Accepted"))
+        .order_by(Submission.problem_id)
     )
-    return render_template("user/info.html", user=user, submissions=submissions)
+    return render_template("user/info.html", user=user, solved_problems=solved_problems)
 
 
 @bp.route("/update_info", methods=["POST"])

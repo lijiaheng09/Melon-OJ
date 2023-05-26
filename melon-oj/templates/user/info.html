@@ -5,10 +5,10 @@
 {% endblock %}
 
 {% block content %}
-<h2>Submissions</h2>
+<h2>Solved Problems</h2>
 <div>
-  {% for sub in submissions %}
-  Submission #{{ sub.id }} of <a href="{{ url_for('problem.show', problem_id=sub.problem_id) }}">Problem {{ sub.problem_id }}</a> <br />
+  {% for s in solved_problems %}
+  <a href="{{ url_for('problem.show', problem_id=s.problem_id) }}"> {{ s.problem_id }}</a>
   {% endfor %}
 </div>
 
