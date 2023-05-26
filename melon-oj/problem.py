@@ -76,7 +76,7 @@ def show(problem_id: int, contest_id=None, idx=None):
 def create():
     p = Problem(title="New Problem", statement="")
     db.session.add(p)
-    db.session.commit()
+    db.session.flush()
     db.session.add(ProblemManager(problem_id=p.id, manager_id=g.user.id))
     db.session.commit()
     return redirect(url_for("problem.edit", problem_id=p.id))

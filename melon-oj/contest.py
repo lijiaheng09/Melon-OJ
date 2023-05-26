@@ -90,7 +90,7 @@ def show(contest_id: int):
         sa.select(Contest).where(Contest.id == contest_id)
     ).scalar_one()
     problems = None
-    if (c.start_time <= datetime.datetime.now()) or is_manager(contest_id):
+    if (c.start_time is not None and c.start_time <= datetime.datetime.now()) or is_manager(contest_id):
         problems = db.session.execute(
             sa.select(ContestProblem.idx, Problem.title)
             .select_from(
@@ -263,8 +263,11 @@ def add_manager(contest_id: int):
 
 
 @bp.route("/create")
+@auth.login_required
 def create():
     c = Contest(title="New Contest")
     db.session.add(c)
+    db.session.flush()
+    db.session.add(ContestManager(contest_id=c.id, manager_id=g.user.id))
     db.session.commit()
     return redirect(url_for("contest.show", contest_id=c.id))
