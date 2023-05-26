@@ -58,3 +58,8 @@ class Contest(db.Model):
     title = sa.Column(sa.String(128), nullable=False)
     start_time = sa.Column(sa.DateTime)
     end_time = sa.Column(sa.DateTime)
+
+
+class ContestManager(db.Model):
+    contest_id = sa.Column(sa.ForeignKey(Contest.id), primary_key=True)
+    manager_id = sa.Column(sa.ForeignKey(User.id), primary_key=True)
