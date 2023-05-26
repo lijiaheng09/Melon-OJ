@@ -63,7 +63,10 @@ def show(problem_id: int):
     p = db.session.execute(
         sa.select(Problem).where(Problem.id == problem_id)
     ).scalar_one()
-    return render_template("problem/show.html", p=p, is_manager=is_manager(problem_id))
+    ismgr = is_manager(problem_id)
+    if p.visibility != "Public" and not ismgr:
+        abort(403)
+    return render_template("problem/show.html", p=p, is_manager=ismgr)
 
 
 @bp.route("/create")
