@@ -51,3 +51,10 @@ class Submission(db.Model):
         default="Waiting",
     )
     score = sa.Column(sa.Float)  # ranging [0.0, 1.0] in most cases
+
+
+class Contest(db.Model):
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    title = sa.Column(sa.String(128), nullable=False)
+    start_time = sa.Column(sa.DateTime)
+    end_time = sa.Column(sa.DateTime)
