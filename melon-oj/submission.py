@@ -17,13 +17,25 @@ import sqlalchemy as sa
 bp = Blueprint("submission", __name__, url_prefix="/submission")
 
 
-@bp.route("/list")
+@bp.route("/list", methods=["GET", "POST"])
 def ls():
-    user_id = g.user.id if g.user is not None else None
-    probs = sa.select(Problem.id).where(
+    problem_id = sa.select(Problem.id)
+    user_id = sa.select(User.id)
+    if request.method == "POST":
+        if request.form["problem_id"]:
+            problem_id = sa.select(Problem.id).where(
+                Problem.id == int(request.form["problem_id"])
+            )
+        if request.form["user_id"]:
+            user_id = sa.select(User.id).where(
+                User.id == int(request.form["user_id"])
+            )
+    print(problem_id)
+    my_user_id = g.user.id if g.user is not None else None
+    my_probs = sa.select(Problem.id).where(
         (Problem.visibility == "Public") | Problem.id.in_(
             sa.select(ProblemManager.problem_id).where(
-                ProblemManager.manager_id == user_id
+                ProblemManager.manager_id == my_user_id
             )
         )
     )
@@ -34,10 +46,17 @@ def ls():
             Submission.user_id, User.name,
             Submission.verdict, Submission.score, Submission.time
         ).select_from(Submission, Problem, User).where(
-            (Submission.problem_id == Problem.id) & (Submission.user_id == User.id) & (Problem.id.in_(probs))
+            (Submission.problem_id == Problem.id) & (Submission.user_id == User.id) & (Problem.id.in_(my_probs))
+            & (Problem.id.in_(problem_id)) & (User.id.in_(user_id))
         ).order_by(Submission.id.desc())
     )
-    return render_template("submission/list.html", submissions=submissions)
+    return render_template(
+        "submission/list.html",
+        submissions=submissions,
+        problem_id=request.form["problem_id"],
+        user_id=request.form["user_id"]
+    )
+
 
 @bp.route("/show/<int:submission_id>")
 def show(submission_id: int, contest_info=None):
