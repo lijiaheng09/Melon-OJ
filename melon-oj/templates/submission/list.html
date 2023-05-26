@@ -20,7 +20,7 @@
     <td align="center"><a href="{{ url_for('submission.show', submission_id=s.id) }}">{{ s.id }}</a></td>
     <td align="center"><a href="{{ url_for('problem.show', problem_id=s.problem_id) }}">{{ s.title }}</a></td>
     <td align="center"><a href="{{ url_for('user.info', user_id=s.user_id) }}">{{ s.name }}</a></td>
-    <td align="center">{{ s.verdict }}</td>
+    <td align="center"><a href="{{ url_for('submission.show', submission_id=s.id) }}">{{ s.verdict }}</a></td>
     <td align="center">{{ s.score }}</td>
     <td align="center">{{ s.time }}</td>
   </tr>
