@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}[Problem {{p.id}}] {{p.title}}{% endblock %}</h1>
+<h1>{% block title %}
+{% if contest_id %}
+[Contest Problem {{contest_id}}-{{idx}}]
+{% else %}
+[Problem {{p.id}}]
+{% endif %}
+{{p.title}}{% endblock %}</h1>
 {% if is_manager %}
 <a href="{{ url_for('problem.edit', problem_id=p.id) }}">Edit</a>
 {% endif %}

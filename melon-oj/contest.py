@@ -12,8 +12,9 @@ from flask import (
 )
 import sqlalchemy as sa
 import sqlalchemy.exc
-from .db import db, Contest, ContestManager, User
+from .db import db, Contest, ContestManager, ContestProblem, User, Problem
 from . import auth
+from . import problem
 
 bp = Blueprint("contest", __name__, url_prefix="/contest")
 
@@ -88,7 +89,37 @@ def show(contest_id: int):
     c = db.session.execute(
         sa.select(Contest).where(Contest.id == contest_id)
     ).scalar_one()
-    return render_template("contest/show.html", c=c, is_manager=is_manager(contest_id))
+    problems = None
+    if (c.start_time <= datetime.datetime.now()) or is_manager(contest_id):
+        problems = db.session.execute(
+            sa.select(ContestProblem.idx, Problem.title)
+            .select_from(
+                sa.outerjoin(
+                    ContestProblem, Problem, ContestProblem.problem_id == Problem.id
+                )
+            )
+            .where(ContestProblem.contest_id == contest_id)
+        )
+    return render_template(
+        "contest/show.html", c=c, is_manager=is_manager(contest_id), problems=problems
+    )
+
+
+@bp.route("/show_problem/<int:contest_id>/<int:idx>")
+def show_problem(contest_id: int, idx: int):
+    start_time = db.session.execute(
+        sa.select(Contest.start_time)
+        .select_from(Contest)
+        .where(Contest.id == contest_id)
+    ).scalar_one()
+    if not (start_time <= datetime.datetime.now()) and not is_manager(contest_id):
+        abort(403)
+    problem_id = db.session.execute(
+        sa.select(ContestProblem.problem_id)
+        .select_from(ContestProblem)
+        .where((ContestProblem.contest_id == contest_id) & (ContestProblem.idx == idx))
+    ).scalar_one()
+    return problem.show(problem_id=problem_id, contest_id=contest_id, idx=idx)
 
 
 @bp.route("/edit/<int:contest_id>", methods=["GET", "POST"])
@@ -98,6 +129,20 @@ def edit(contest_id: int):
         c = db.session.execute(
             sa.select(Contest).where(Contest.id == contest_id)
         ).scalar_one()
+        problems = db.session.execute(
+            sa.select(
+                ContestProblem.idx,
+                ContestProblem.score,
+                ContestProblem.problem_id,
+                Problem.title,
+            )
+            .select_from(
+                sa.outerjoin(
+                    ContestProblem, Problem, ContestProblem.problem_id == Problem.id
+                )
+            )
+            .where(ContestProblem.contest_id == contest_id)
+        ).all()
         managers = db.session.execute(
             sa.select(User)
             .select_from(User, ContestManager)
@@ -106,7 +151,9 @@ def edit(contest_id: int):
                 & (User.id == ContestManager.manager_id)
             )
         ).scalars()
-        return render_template("contest/edit.html", c=c, managers=managers)
+        return render_template(
+            "contest/edit.html", c=c, problems=problems, managers=managers
+        )
     db.session.execute(
         sa.update(Contest)
         .where(Contest.id == contest_id)
@@ -115,6 +162,70 @@ def edit(contest_id: int):
             start_time=request.form["start_time"] or None,
             end_time=request.form["end_time"] or None,
         )
+    )
+    db.session.commit()
+    return redirect(request.referrer or url_for("contest.edit", contest_id=contest_id))
+
+
+@bp.route("/edit_problem/<int:contest_id>/<int:idx>", methods=["POST"])
+@manager_required
+def edit_problem(contest_id: int, idx: int):
+    try:
+        score = float(request.form["score"]) if request.form["score"] else None
+        ok = True
+        if request.form["problem_id"]:
+            problem_id = int(request.form["problem_id"])
+            visbility = db.session.execute(
+                sa.select(Problem.visibility).where(
+                    Problem.id == request.form["problem_id"]
+                )
+            ).scalar_one()
+            if visbility != "Public" and not problem.is_manager(problem_id):
+                flash("No access to the problem.")
+                ok = False
+        if ok:
+            db.session.execute(
+                sa.update(ContestProblem)
+                .where(
+                    (ContestProblem.contest_id == contest_id)
+                    & (ContestProblem.idx == idx)
+                )
+                .values(
+                    problem_id=request.form["problem_id"] or None,
+                    score=score,
+                )
+            )
+            db.session.commit()
+    except ValueError:
+        flash("Invalid problem ID or score.")
+    except sqlalchemy.exc.NoResultFound:
+        flash("No such problem.")
+    return redirect(request.referrer or url_for("contest.edit", contest_id=contest_id))
+
+
+@bp.route("/add_problem/<int:contest_id>", methods=["POST"])
+@manager_required
+def add_problem(contest_id: int):
+    idx = db.session.execute(
+        sa.select(sa.func.count() + 1)
+        .select_from(ContestProblem)
+        .where(ContestProblem.contest_id == contest_id)
+    ).scalar_one()
+    db.session.execute(sa.insert(ContestProblem).values(contest_id=contest_id, idx=idx))
+    db.session.commit()
+    return redirect(request.referrer or url_for("contest.edit", contest_id=contest_id))
+
+
+@bp.route("/remove_problem/<int:contest_id>", methods=["POST"])
+@manager_required
+def remove_problem(contest_id: int):
+    db.session.delete(
+        db.session.execute(
+            sa.select(ContestProblem)
+            .where(ContestProblem.contest_id == contest_id)
+            .order_by(ContestProblem.idx.desc())
+            .limit(1)
+        ).scalar_one()
     )
     db.session.commit()
     return redirect(request.referrer or url_for("contest.edit", contest_id=contest_id))

@@ -11,8 +11,8 @@
   <input name="title" id="title" value="{{ c.title }}" required/>
   <label for="start_time">Start Time</label>
   <div>
-  <input type="datetime-local" name="start_time" id="start_time" value="{{ c.start_time }}"/>
-  <button onclick="getElementById('start_time').value = null;">None</button>
+    <input type="datetime-local" name="start_time" id="start_time" value="{{ c.start_time }}"/>
+    <button onclick="getElementById('start_time').value = null;">None</button>
   </div>
   <label for="end_time">End Time</label>
   <div>
@@ -21,6 +21,46 @@
   </div>
   <input type="submit" value="Apply" />
 </form>
+
+<h2>Problems</h2>
+{% for cp in problems %}
+<form method="post" id="edit_problem_{{cp.idx}}" action="{{ url_for('contest.edit_problem', contest_id=c.id, idx=cp.idx) }}"></form>
+{% endfor %}
+<table border="1" width="100%">
+  <tr>
+    <th width="10%">#</th>
+    <th width="15%">Problem ID</th>
+    <th width="55%">Problem Title</th>
+    <th width="10%">Score</th>
+    <th width="10%">Apply</th>
+  </tr>
+  {% for cp in problems %}
+  <tr>
+      <td align="center">{{ cp.idx }}</td>
+      <td align="center">
+        <input form="edit_problem_{{cp.idx}}" name="problem_id" value="{{ cp.problem_id or '' }}" style="width: 90%; margin: 0; text-align: center;" />
+      </td>
+      <td align="center">{{ cp.title or '' }}</td>
+      <td align="center">
+        <input form="edit_problem_{{cp.idx}}" name="score" value="{{ '' if cp.score == None else cp.score }}" style="width: 90%; margin: 0; text-align: center;" />
+      </td>
+      <td align="center">
+        <input form="edit_problem_{{cp.idx}}" type="submit" value="Apply" style="width: 90%; margin: 0;" />
+      </td>
+    </form>
+  </tr>
+  {% endfor %}
+</table>
+<p>
+  <div>
+  <form method="post" action="{{ url_for('contest.add_problem', contest_id=c.id) }}" style="display: inline;">
+    <input type="submit" value="+" />
+  </form>
+  <form method="post" action="{{ url_for('contest.remove_problem', contest_id=c.id) }}" style="display: inline;">
+    <input type="submit" value="-" {{ 'disabled' if problems.__len__() == 0 else '' }} />
+  </form>
+  </div>
+</p>
 
 <h2>Managers</h2>
 <form method="post" action="{{ url_for('contest.drop_managers', contest_id=c.id) }}">
