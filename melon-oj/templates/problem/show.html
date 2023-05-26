@@ -11,7 +11,7 @@
 <div id="statement">{{ p.statement|safe }}</div>
 <form method="post" action="{{ url_for('problem.submit', problem_id=p.id) }}">
   <label for="answer">Your Answer</label>
-  <textarea name="answer" id="answer" required></textarea>
+  <textarea name="answer" id="answer" style="font-family: monospace;" required></textarea>
   <input type="submit" value="Submit" />
 </form>
 

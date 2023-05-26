@@ -1,3 +1,4 @@
+import datetime
 import functools
 from flask import (
     Blueprint,
@@ -133,10 +134,9 @@ def add_manager(problem_id: int):
 @auth.login_required
 def submit(problem_id: int):
     sub = Submission(
-        problem_id=problem_id, user_id=g.user.id, answer=request.values["answer"]
+        problem_id=problem_id, user_id=g.user.id, answer=request.values["answer"],
+        time=datetime.datetime.now()
     )
     db.session.add(sub)
     db.session.commit()
-    # TODO: show submission
-    flash(f"Successfully submitted. Submission ID: {sub.id}")
-    return redirect(request.referrer)
+    return redirect(url_for("submission.show", submission_id=sub.id))
