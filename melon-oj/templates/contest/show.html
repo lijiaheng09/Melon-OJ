@@ -2,7 +2,9 @@
 
 {% block header %}
 <h1>{% block title %}[Contest {{c.id}}] {{c.title}}{% endblock %}</h1>
+{% if is_manager %}
 <a href="{{ url_for('contest.edit', contest_id=c.id) }}">Edit</a>
+{% endif %}
 {% endblock %}
 
 {% block content %}

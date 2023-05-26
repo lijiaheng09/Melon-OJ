@@ -21,4 +21,21 @@
   </div>
   <input type="submit" value="Apply" />
 </form>
+
+<h2>Managers</h2>
+<form method="post" action="{{ url_for('contest.drop_managers', contest_id=c.id) }}">
+  <label>Drop Managers</label>
+  <div>
+  {% for m in managers %}
+  <input type="checkbox" name="{{ m.id }}" {{ 'disabled' if m.id == g.user.id else '' }} />{{ m.name }}
+  {% endfor %}
+  </div>
+  <input type="submit" value="Drop" />
+</form>
+<form method="post" action="{{ url_for('contest.add_manager', contest_id=c.id) }}">
+  <label for="manager">Add Manager</label>
+  <input name="manager" required />
+  <input type="submit" value="Add" />
+</form>
+
 {% endblock %}

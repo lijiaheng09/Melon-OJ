@@ -8,9 +8,11 @@
 {% block content %}
 {% for (title, cs) in [
     ("Running", running_contests),
+    ("My Contests", my_contests),
     ("Upcoming", upcoming_contests),
     ("Ended", ended_contests)
   ] %}
+{% if cs %}
 <h2>{{ title }}</h2>
 <table border="1" width="100%">
   <tr>
@@ -28,5 +30,6 @@
   </tr>
   {% endfor %}
 </table>
+{% endif %}
 {% endfor %}
 {% endblock %}
