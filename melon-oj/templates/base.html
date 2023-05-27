@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <title>{% block title %}{% endblock %} - Melon OJ</title>
 <nav>
+  <a href="{{ url_for('index') }}"><img style="float:left" src="{{ url_for('static', filename='melon.png') }}" width="40", height="40"/></a>
   <h1 style="float: left"><a href="{{ url_for('index') }}">Melon OJ</a></h1>
   <ul style="float: left;">
     <li><a href="{{ url_for('problem.ls') }}">Problems</a></li>
