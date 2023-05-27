@@ -102,6 +102,7 @@ def show(contest_id: int):
         sa.select(Contest).where(Contest.id == contest_id)
     ).scalar_one()
     problems = None
+    ranklist = None
     if (c.start_time and c.start_time <= datetime.datetime.now()) or is_manager(
         contest_id
     ):
