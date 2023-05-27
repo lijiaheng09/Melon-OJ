@@ -9,6 +9,9 @@
   {% endif %}
   {{p.title}}{% endblock %}</h1>
 <div>
+  {% if contest_info and contest_info['full_score'] %}
+  <u>Full Score: {{ contest_info['full_score'] }}</u>
+  {% endif %}
   {% if sub %}
   {% if contest_info %}
   <a href="{{ url_for('contest.show_submission', submission_id=sub.id)}}">
