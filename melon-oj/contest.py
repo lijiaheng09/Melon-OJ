@@ -102,9 +102,9 @@ def show(contest_id: int):
         sa.select(Contest).where(Contest.id == contest_id)
     ).scalar_one()
     problems = None
-    if (
-        c.start_time is not None and c.start_time <= datetime.datetime.now()
-    ) or is_manager(contest_id):
+    if (c.start_time and c.start_time <= datetime.datetime.now()) or is_manager(
+        contest_id
+    ):
         user_id = g.user.id if g.user else None
         problems = db.session.execute(
             sa.select(
@@ -227,7 +227,7 @@ def submit_problem(contest_id: int, idx: int):
         .where(Contest.id == contest_id)
     ).one()
     now = datetime.datetime.now()
-    if not (c.start_time <= now < c.end_time):
+    if not (c.start_time and c.end_time and c.start_time <= now < c.end_time):
         flash("Contest not running.")
         return redirect(
             request.referrer
@@ -266,7 +266,7 @@ def list_submission(contest_id: int):
         .where(Contest.id == contest_id)
     ).one()
     now = datetime.datetime.now()
-    if not (c.start_time <= now) and not is_manager(contest_id):
+    if not (c.start_time and c.start_time <= now) and not is_manager(contest_id):
         abort(403)
     pred = (
         (ContestProblem.contest_id == contest_id)
