@@ -82,7 +82,8 @@ def show(problem_id: int, contest_info=None):
     ).scalar_one()
     ismgr = is_manager(problem_id)
     if contest_info is None and p.visibility != "Public" and not ismgr:
-        abort(403)
+        flash("No access.")
+        return redirect(request.referrer)
     if contest_info is None:
         sub = (
             db.session.execute(
