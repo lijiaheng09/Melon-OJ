@@ -1,14 +1,17 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Submissions{% endblock %}</h1>
+  <h1>{% block title %}Submissions{{ ' for Contest '~contest_id if contest_id else '' }}{% endblock %}</h1>
+  {% if contest_id %}
+  <a href="{{ url_for('contest.show', contest_id=contest_id) }}">Contest</a>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
 <form>
   <div align="center">
-    Problem Title: <input style="width: 20%" name="problem" value="{{ request.args['problem'] }}" />
-    User Name:    <input style="width: 15%" name="user" value="{{ request.args['user'] }}" />
+    Problem: <input style="width: 20%" name="problem" value="{{ request.args['problem'] }}" />
+    User:    <input style="width: 15%" name="user" value="{{ request.args['user'] }}" />
     Verdict: <input style="width: 15%" name="verdict" value="{{ request.args['verdict'] }}" />
     <input style="width: 15%" type="submit" value="Search" />
   </div>
@@ -25,10 +28,18 @@
   </tr>
   {% for s in submissions %}
   <tr>
-    <td align="center"><a href="{{ url_for('submission.show', submission_id=s.id) }}">{{ s.id }}</a></td>
-    <td align="center"><a href="{{ url_for('problem.show', problem_id=s.problem_id) }}">{{ s.title }}</a></td>
+    <td align="center"><a href="{{
+        url_for('contest.show_submission' if contest_id else 'submission.show', submission_id=s.id)
+      }}">{{ s.id }}</a></td>
+    <td align="center"><a href="{{
+        url_for('contest.show_problem', contest_id=contest_id, idx=s.idx)
+        if contest_id
+        else url_for('problem.show', problem_id=s.problem_id)
+      }}">{{ s.title }}</a></td>
     <td align="center"><a href="{{ url_for('user.info', user_id=s.user_id) }}">{{ s.name }}</a></td>
-    <td align="center"><a href="{{ url_for('submission.show', submission_id=s.id) }}">{{ s.verdict }}</a></td>
+    <td align="center"><a href="{{
+        url_for('contest.show_submission' if contest_id else 'submission.show', submission_id=s.id)
+      }}">{{ s.verdict }}</a></td>
     <td align="center">{{ s.score }}</td>
     <td align="center">{{ s.time }}</td>
   </tr>

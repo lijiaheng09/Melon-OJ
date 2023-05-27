@@ -256,6 +256,50 @@ def submit_problem(contest_id: int, idx: int):
     )
 
 
+@bp.route("/list_submission/<int:contest_id>")
+def list_submission(contest_id: int):
+    c = db.session.execute(
+        sa.select(Contest.start_time, Contest.end_time)
+        .select_from(Contest)
+        .where(Contest.id == contest_id)
+    ).one()
+    now = datetime.datetime.now()
+    if not (c.start_time <= now) and not is_manager(contest_id):
+        abort(403)
+    pred = (
+        (ContestSubmission.contest_id == contest_id)
+        & (ContestSubmission.submission_id == Submission.id)
+        & (Submission.problem_id == Problem.id)
+        & (Submission.user_id == User.id)
+    )
+    search_problem = request.args.get("problem", "")
+    if search_problem:
+        pred &= ContestSubmission.idx == search_problem
+    search_user = request.args.get("user", "")
+    if search_user:
+        pred &= User.name == search_user
+    search_verdict = request.args.get("verdict", "")
+    if search_verdict:
+        pred &= Submission.verdict == search_verdict
+    submissions = db.session.execute(
+        sa.select(
+            ContestSubmission.idx,
+            Submission.id,
+            Submission.problem_id,
+            Problem.title,
+            Submission.user_id,
+            User.name,
+            Submission.verdict,
+            Submission.score,
+            Submission.time,
+        )
+        .select_from(ContestSubmission, Submission, Problem, User)
+        .where(pred)
+        .order_by(Submission.id.desc())
+    )
+    return render_template("submission/list.html", submissions=submissions, contest_id=contest_id)
+
+
 @bp.route("/show_submission/<int:submission_id>")
 def show_submission(submission_id: int):
     cs = db.session.execute(
@@ -280,6 +324,8 @@ def show_submission(submission_id: int):
             sa.select(Submission.user_id)
             .select_from(Submission)
             .where((Submission.id == submission_id) & (Submission.user_id == g.user.id))
+            .exists()
+            .select()
         ).scalar_one()
     )
     if (
@@ -287,7 +333,8 @@ def show_submission(submission_id: int):
         and not is_self
         and not is_manager(cs.contest_id)
     ):
-        abort(403)
+        flash("No access.")
+        return redirect(request.referrer)
     return submission.show(
         submission_id=submission_id,
         contest_info={"id": cs.contest_id, "idx": cs.idx, "full_score": cs.score},

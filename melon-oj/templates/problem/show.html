@@ -23,6 +23,17 @@
   {% endif %}
   {% endif %}
   {% if contest_info %}
+  {% if g.user %}
+  <a href="{{ url_for('contest.list_submission', contest_id=contest_info['id'], problem=contest_info['idx'], user=g.user.name) }}">My Submissions</a>
+  {% endif %}
+  <a href="{{ url_for('contest.list_submission', contest_id=contest_info['id'], problem=contest_info['idx']) }}">Submissions</a>
+  {% else %}
+  {% if g.user %}
+  <a href="{{ url_for('submission.ls', problem=p.id, user=g.user.name) }}">My Submissions</a>
+  {% endif %}
+  <a href="{{ url_for('submission.ls', problem=p.id) }}">Submissions</a>
+  {% endif %}
+  {% if contest_info %}
   <a href="{{ url_for('contest.show', contest_id=contest_info['id']) }}">Contest</a>
   {% endif %}
   {% if contest_info and not contest_info['is_running'] %}

@@ -28,6 +28,11 @@
 </table>
 
 {% if problems %}
+{% if g.user %}
+<a href="{{ url_for('contest.list_submission', contest_id=c.id, user=g.user.name) }}">My Submissions</a><br />
+{% endif %}
+<a href="{{ url_for('contest.list_submission', contest_id=c.id) }}">Submissions</a>
+
 <h2>Problems</h2>
 <table border="1" width="100%">
   <tr>

@@ -30,13 +30,13 @@ def ls():
     pred = (Submission.problem_id == Problem.id) & (Submission.user_id == User.id) & (Problem.id.in_(my_probs))
     search_problem = request.args.get("problem", "")
     if search_problem:
-        pred &= (Problem.id == search_problem) | Problem.title.like(f"%{search_problem}%")
+        pred &= (Problem.id == search_problem) # | Problem.title.like(f"%{search_problem}%")
     search_user = request.args.get("user", "")
     if search_user:
-        pred &= (User.id == search_user) | User.name.like(f"%{search_user}%")
+        pred &= (User.name == search_user) # | User.name.like(f"%{search_user}%")
     search_verdict = request.args.get("verdict", "")
     if search_verdict:
-        pred &= Submission.verdict.like(f"%{search_verdict}%")
+        pred &= (Submission.verdict == search_verdict)
     submissions = db.session.execute(
         sa.select(
             Submission.id,
