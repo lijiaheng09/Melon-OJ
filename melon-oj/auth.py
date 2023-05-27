@@ -24,6 +24,11 @@ def register():
         return render_template("auth/register.html")
     username = request.form["username"]
     password = request.form["password"]
+    if db.session.execute(
+        sa.select(User).where(User.name == username).exists().select()
+    ).scalar_one():
+        flash("Username already exists.")
+        return redirect(url_for("auth.register"))
     user = User(name=username, password=password)
     try:
         db.session.add(user)
