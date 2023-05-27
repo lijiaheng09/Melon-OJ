@@ -85,17 +85,34 @@ class ContestSubmission(db.Model):
 
 
 class ContestLastSubmission(db.Model):
-    selectable = (
+    __lastsub = (
         sa.select(
             ContestSubmission.contest_id,
             ContestSubmission.idx,
-            Submission.user_id,
             sa.func.max(Submission.id).label("submission_id"),
         )
         .select_from(ContestSubmission, Submission)
         .where(ContestSubmission.submission_id == Submission.id)
         .group_by(
             ContestSubmission.contest_id, ContestSubmission.idx, Submission.user_id
+        )
+    )
+    selectable = (
+        sa.select(
+            ContestProblem.contest_id,
+            ContestProblem.idx,
+            ContestProblem.score.label("full_score"),
+            Submission.id.label("submission_id"),
+            Submission.user_id,
+            Submission.time,
+            Submission.verdict,
+            Submission.score
+        )
+        .select_from(ContestProblem, Submission, __lastsub)
+        .where(
+            (ContestProblem.contest_id == __lastsub.columns["contest_id"])
+            & (ContestProblem.idx == __lastsub.columns["idx"])
+            & (Submission.id == __lastsub.columns["submission_id"])
         )
     )
     __table__ = sqlalchemy_utils.create_view(

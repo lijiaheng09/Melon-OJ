@@ -11,6 +11,7 @@ from flask import (
     url_for,
 )
 import sqlalchemy as sa
+import sqlalchemy.orm
 import sqlalchemy.exc
 from .db import (
     db,
@@ -110,8 +111,8 @@ def show(contest_id: int):
                 ContestProblem.idx,
                 ContestProblem.score.label("full_score"),
                 Problem.title,
-                Submission.id.label("submission_id"),
-                Submission.score.label("my_score"),
+                ContestLastSubmission.submission_id,
+                ContestLastSubmission.score,
             )
             .select_from(
                 sa.outerjoin(
@@ -119,65 +120,50 @@ def show(contest_id: int):
                     Problem,
                     (ContestProblem.problem_id == Problem.id),
                 ).outerjoin(
-                    sa.join(
-                        ContestLastSubmission,
-                        Submission,
-                        (ContestLastSubmission.submission_id == Submission.id)
-                        & (Submission.user_id == user_id),
-                    ),
+                    ContestLastSubmission,
                     (ContestProblem.contest_id == ContestLastSubmission.contest_id)
-                    & (ContestProblem.idx == ContestLastSubmission.idx),
+                    & (ContestProblem.idx == ContestLastSubmission.idx)
+                    & (ContestLastSubmission.user_id == user_id),
                 )
             )
             .where((ContestProblem.contest_id == contest_id))
         ).all()
 
-        tot_score_expr = sa.func.sum(Submission.score * ContestProblem.score)
-        basic_ranklist = (
+        tot_score_expr = sa.func.sum(
+            ContestLastSubmission.full_score * ContestLastSubmission.score
+        )
+        ranklist = (
             sa.select(
                 ContestLastSubmission.user_id,
-                User.name.label("user_name"),
-                tot_score_expr.label("total_score"),
+                tot_score_expr.label("tot_score"),
             )
-            .select_from(ContestProblem, ContestLastSubmission, Submission, User)
-            .where(
-                (ContestProblem.contest_id == contest_id)
-                & (ContestProblem.contest_id == ContestLastSubmission.contest_id)
-                & (ContestProblem.idx == ContestLastSubmission.idx)
-                & (ContestLastSubmission.submission_id == Submission.id)
-                & (Submission.user_id == User.id)
-            )
-            .group_by(ContestLastSubmission.user_id, User.name)
+            .select_from(ContestLastSubmission)
+            .where(ContestLastSubmission.contest_id == contest_id)
+            .group_by(ContestLastSubmission.user_id)
             .order_by(tot_score_expr.desc())
         )
+        col_uid = ranklist.columns["user_id"]
+        col_tot_score = ranklist.columns["tot_score"]
         tabs = [
-            sa.select(
-                ContestLastSubmission.user_id,
-                (Submission.score * ContestProblem.score).label(f"score_{p.idx}"),
-                Submission.id.label(f"submission_id_{p.idx}"),
-            )
-            .select_from(ContestProblem, ContestLastSubmission, Submission, User)
-            .where(
-                (ContestProblem.contest_id == contest_id)
-                & (ContestProblem.idx == p.idx)
-                & (ContestProblem.contest_id == ContestLastSubmission.contest_id)
-                & (ContestProblem.idx == ContestLastSubmission.idx)
-                & (ContestLastSubmission.submission_id == Submission.id)
-                & (Submission.user_id == User.id)
-            )
-            for p in problems
+            (p.idx, sqlalchemy.orm.aliased(ContestLastSubmission)) for p in problems
         ]
-        col_uid = basic_ranklist.columns["user_id"]
-        ranklist = basic_ranklist
-        for t in tabs:
-            ranklist = sa.outerjoin(ranklist, t, col_uid == t.columns["user_id"])
+        for idx, t in tabs:
+            ranklist = sa.outerjoin(
+                ranklist,
+                t,
+                (t.contest_id == contest_id) & (t.idx == idx) & (t.user_id == col_uid),
+            )
         ranklist = db.session.execute(
             sa.select(
-                basic_ranklist.columns,
-                *[sa.column(f"score_{p.idx}") for p in problems],
-                *[sa.column(f"submission_id_{p.idx}") for p in problems],
-            ).select_from(ranklist)
-        )
+                col_uid,
+                col_tot_score,
+                *[(t.full_score * t.score).label(f"score_{idx}") for idx, t in tabs],
+                *[t.submission_id.label(f"submission_id_{idx}") for idx, t in tabs],
+                User.name.label("user_name")
+            )
+            .select_from(ranklist, User)
+            .where(col_uid == User.id)
+        ).all()
     return render_template(
         "contest/show.html",
         c=c,

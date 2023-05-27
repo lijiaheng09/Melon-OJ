@@ -36,17 +36,23 @@
     <th width="15%">Score</th>
     <th width="15%">Full Score</th>
   </tr>
-  {% set ns = namespace(tot_my_score=0.0, tot_full_score=0.0) %}
+  {% set ns = namespace(tot_score=0.0, tot_full_score=0.0) %}
   {% for p in problems %}
   <tr>
     <td align="center">{{ p.idx }}</td>
-    <td align="center"><a href="{{ url_for('contest.show_problem', contest_id=c.id, idx=p.idx) }}">{{ p.title or '' }}</a></td>
+    <td align="center">
+      <a href="{{ url_for('contest.show_problem', contest_id=c.id, idx=p.idx) }}">
+        {{ p.title or '' }}
+      </a>
+    </td>
     <td align="center">
       {% if p.submission_id %}
-      <a href="{{ url_for('contest.show_submission', submission_id=p.submission_id) }}">{{ p.my_score * p.full_score if p.my_score != None and p.full_score != None else '---' }}</a>
+      <a href="{{ url_for('contest.show_submission', submission_id=p.submission_id) }}">
+        {{ p.score * p.full_score if p.score != None and p.full_score != None else '---' }}
+      </a>
       {% endif %}
-      {% if p.my_score != None and p.full_score != None %}
-      {% set ns.tot_my_score = ns.tot_my_score + p.my_score * p.full_score %}
+      {% if p.score != None and p.full_score != None %}
+      {% set ns.tot_score = ns.tot_score + p.score * p.full_score %}
       {% endif %}
     </td>
     <td align="center">
@@ -60,7 +66,7 @@
   <tr>
     <th>Total</th>
     <td></td>
-    <td align="center">{{ ns.tot_my_score }}</td>
+    <td align="center">{{ ns.tot_score }}</td>
     <td align="center">{{ ns.tot_full_score }}</td>
   </tr>
 </table>
@@ -79,11 +85,13 @@
   {% for r in ranklist %}
   <tr>
     <td align="center"><a href="{{ url_for('user.info', user_id=r.user_id) }}">{{ r.user_name }}</td>
-    <td align="center">{{ r.total_score if r.total_score != None else '' }}</td>
+    <td align="center">{{ r.tot_score if r.tot_score != None else '' }}</td>
     {% for p in problems %}
     <td align="center">
       {% if r['submission_id_'~p.idx] %}
-      <a href="{{ url_for('contest.show_submission', submission_id=r['submission_id_'~p.idx]) }}">{{ r['score_'~p.idx] if r['score_'~p.idx] != None else '---' }}</a>
+      <a href="{{ url_for('contest.show_submission', submission_id=r['submission_id_'~p.idx]) }}">
+        {{ r['score_'~p.idx] if r['score_'~p.idx] != None else '---' }}
+      </a>
       {% endif %}
     </td>
     {% endfor %}
