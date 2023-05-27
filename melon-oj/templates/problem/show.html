@@ -50,7 +50,7 @@
 
 {% block content %}
 <div id="statement">
-  <textarea id="statement_text" hidden>{{ p.statement }}</textarea>
+  <pre id="statement_text">{{ p.statement }}</pre>
 </div>
 <form method="post" action="{{
     url_for('contest.submit_problem', contest_id=contest_info['id'], idx=contest_info['idx'])
@@ -67,7 +67,7 @@
 <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
 </script>
 <script>
-  document.getElementById('statement').innerHTML = marked.parse(document.getElementById('statement_text').value);
+  document.getElementById('statement').innerHTML = marked.parse(document.getElementById('statement_text').textContent);
   window.MathJax = {
     tex: {
       inlineMath: [['$', '$'], ['\\(', '\\)']]
