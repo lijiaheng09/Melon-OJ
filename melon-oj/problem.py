@@ -32,6 +32,7 @@ def ls():
         sa.select(
             Problem.id.label("problem_id"),
             Problem.title,
+            Problem.visibility,
             HighestSubmission.id.label("submission_id"),
             HighestSubmission.score,
         )
