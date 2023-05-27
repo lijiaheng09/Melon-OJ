@@ -1,10 +1,19 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}[Submission {{ s.id }}]{% endblock %}</h1>
+<h1>
+  {% block title %}
+  [Submission {{ s.id }}{{ (' in Contest '~contest_info['id']) if contest_info else '' }}]
+  {% endblock %}
+</h1>
+<div>
+  {% if contest_info %}
+  <a href="{{ url_for('contest.show', contest_id=contest_info['id']) }}">Contest</a>
+  {% endif %}
   {% if is_manager %}
   <a href="{{ url_for('submission.judge', submission_id=s.id, contest_info=contest_info) }}">Judge</a>
   {% endif %}
+</div>
 {% endblock %}
 
 {% block content %}
@@ -20,7 +29,15 @@
 
   <tr>
     <td align="center">{{ s.id }}</td>
-    <td align="center"><a href="{{ url_for('contest.show_problem', contest_id=contest_info['id'], idx=contest_info['idx']) if contest_info else url_for('problem.show', problem_id=s.problem_id) }}">{{ s.title }}</a></td>
+    <td align="center">
+      <a href="{{
+          url_for('contest.show_problem', contest_id=contest_info['id'], idx=contest_info['idx'])
+          if contest_info
+          else url_for('problem.show', problem_id=s.problem_id)
+        }}">
+        {{ s.title }}
+      </a>
+    </td>
     <td align="center"><a href="{{ url_for('user.info', user_id=s.user_id) }}">{{ s.name }}</a></td>
     <td align="center">{{ s.verdict }}</td>
     <td align="center">{{ s.score }}</td>
