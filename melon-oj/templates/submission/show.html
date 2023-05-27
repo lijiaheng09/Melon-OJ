@@ -40,7 +40,10 @@
     </td>
     <td align="center"><a href="{{ url_for('user.info', user_id=s.user_id) }}">{{ s.name }}</a></td>
     <td align="center">{{ s.verdict }}</td>
-    <td align="center">{{ s.score }}</td>
+    <td align="center">{{
+      s.score * contest_info['full_score']
+      if s.score and contest_info and contest_info['full_score'] != None else s.score
+    }}</td>
     <td align="center">{{ s.time }}</td>
   </tr>
 </table>

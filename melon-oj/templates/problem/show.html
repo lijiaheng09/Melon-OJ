@@ -2,25 +2,35 @@
 
 {% block header %}
 <h1>{% block title %}
-{% if contest_info %}
-[Contest Problem {{contest_info['id']}}-{{contest_info['idx']}}]
-{% else %}
-[Problem {{p.id}}]
-{% endif %}
-{{p.title}}{% endblock %}</h1>
+  {% if contest_info %}
+  [Contest Problem {{contest_info['id']}}-{{contest_info['idx']}}]
+  {% else %}
+  [Problem {{p.id}}]
+  {% endif %}
+  {{p.title}}{% endblock %}</h1>
 <div>
-{% if sub %}
-<a href="{{ url_for('submission.show', submission_id=sub.id) }}">My Score: {{ sub.score if sub.score != None else '--' }}</a>
-{% endif %}
-{% if contest_info %}
-<a href="{{ url_for('contest.show', contest_id=contest_info['id']) }}">Contest</a>
-{% endif %}
-{% if contest_info and not contest_info['is_running'] %}
-<a href="{{ url_for('problem.show', problem_id=p.id) }}">Practice</a>
-{% endif %}
-{% if is_manager %}
-<a href="{{ url_for('problem.edit', problem_id=p.id) }}">Edit</a>
-{% endif %}
+  {% if sub %}
+  {% if contest_info %}
+  <a href="{{ url_for('contest.show_submission', submission_id=sub.id)}}">
+    My Score: {{
+    sub.score * contest_info['full_score']
+    if sub.score != None and contest_info['full_score'] != None
+    else '--'
+    }}</a>
+  {% else %}
+  <a href="{{ url_for('submission.show', submission_id=sub.id)}}">
+    My Score: {{ sub.score if sub.score != None else '--' }}</a>
+  {% endif %}
+  {% endif %}
+  {% if contest_info %}
+  <a href="{{ url_for('contest.show', contest_id=contest_info['id']) }}">Contest</a>
+  {% endif %}
+  {% if contest_info and not contest_info['is_running'] %}
+  <a href="{{ url_for('problem.show', problem_id=p.id) }}">Practice</a>
+  {% endif %}
+  {% if is_manager %}
+  <a href="{{ url_for('problem.edit', problem_id=p.id) }}">Edit</a>
+  {% endif %}
 </div>
 {% endblock %}
 
@@ -38,8 +48,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script type="text/javascript" id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
 </script>
 <script>
   ele = document.getElementById('statement');

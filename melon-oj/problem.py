@@ -96,6 +96,8 @@ def show(problem_id: int, contest_info=None):
             if g.user
             else None
         )
+    else:
+        sub = contest_info["submission"]
     return render_template(
         "problem/show.html", p=p, sub=sub, is_manager=ismgr, contest_info=contest_info
     )

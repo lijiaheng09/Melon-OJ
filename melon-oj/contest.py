@@ -159,7 +159,7 @@ def show(contest_id: int):
                 col_tot_score,
                 *[(t.full_score * t.score).label(f"score_{idx}") for idx, t in tabs],
                 *[t.submission_id.label(f"submission_id_{idx}") for idx, t in tabs],
-                User.name.label("user_name")
+                User.name.label("user_name"),
             )
             .select_from(ranklist, User)
             .where(col_uid == User.id)
@@ -183,17 +183,35 @@ def show_problem(contest_id: int, idx: int):
     now = datetime.datetime.now()
     if not (c.start_time <= now) and not is_manager(contest_id):
         abort(403)
-    problem_id = db.session.execute(
-        sa.select(ContestProblem.problem_id)
+    cp = db.session.execute(
+        sa.select(ContestProblem.problem_id, ContestProblem.score)
         .select_from(ContestProblem)
         .where((ContestProblem.contest_id == contest_id) & (ContestProblem.idx == idx))
-    ).scalar_one()
+    ).one()
+    sub = (
+        db.session.execute(
+            sa.select(
+                ContestLastSubmission.submission_id.label("id"),
+                ContestLastSubmission.score,
+            )
+            .select_from(ContestLastSubmission)
+            .where(
+                (ContestLastSubmission.contest_id == contest_id)
+                & (ContestLastSubmission.idx == idx)
+                & (ContestLastSubmission.user_id == g.user.id)
+            )
+        ).one_or_none()
+        if g.user
+        else None
+    )
     return problem.show(
-        problem_id=problem_id,
+        problem_id=cp.problem_id,
         contest_info={
             "id": contest_id,
             "idx": idx,
             "is_running": c.start_time <= now < c.end_time,
+            "full_score": cp.score,
+            "submission": sub,
         },
     )
 
@@ -242,21 +260,37 @@ def submit_problem(contest_id: int, idx: int):
 def show_submission(submission_id: int):
     cs = db.session.execute(
         sa.select(
-            ContestSubmission.contest_id, ContestSubmission.idx, Submission.user_id
+            ContestProblem.score, ContestSubmission.contest_id, ContestSubmission.idx
         )
-        .select_from(ContestSubmission, Submission)
+        .select_from(ContestProblem, ContestSubmission)
         .where(
-            (ContestSubmission.submission_id == submission_id)
-            & (ContestSubmission.submission_id == Submission.id)
+            (ContestProblem.contest_id == ContestSubmission.contest_id)
+            & (ContestProblem.idx == ContestSubmission.idx)
+            & (ContestSubmission.submission_id == submission_id)
         )
     ).one()
-    # permission check: only contest manager & oneself can view this contest submission
-    if not g.user:
-        abort(403)
-    if g.user.id != cs.user_id and not is_manager(cs.contest_id):
+    end_time = db.session.execute(
+        sa.select(Contest.end_time)
+        .select_from(Contest)
+        .where(Contest.id == cs.contest_id)
+    ).scalar_one()
+    is_self = (
+        g.user
+        and db.session.execute(
+            sa.select(Submission.user_id)
+            .select_from(Submission)
+            .where((Submission.id == submission_id) & (Submission.user_id == g.user.id))
+        ).scalar_one()
+    )
+    if (
+        (datetime.datetime.now() < end_time)
+        and not is_self
+        and not is_manager(cs.contest_id)
+    ):
         abort(403)
     return submission.show(
-        submission_id=submission_id, contest_info={"id": cs.contest_id, "idx": cs.idx}
+        submission_id=submission_id,
+        contest_info={"id": cs.contest_id, "idx": cs.idx, "full_score": cs.score},
     )
 
 
