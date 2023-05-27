@@ -1,16 +1,22 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Problems{% endblock %}</h1>
-  <a href="{{ url_for('problem.create') }}">Create</a>
+<h1>{% block title %}Problems{% endblock %}</h1>
+<a href="{{ url_for('problem.create') }}">Create</a>
 {% endblock %}
 
 {% block content %}
+<form>
+  <div align="center">
+    <input style="width: 80%" name="search" value="{{ request.args['search'] }}" placeholder="Search" />
+    <input style="width: 15%" type="submit" value="Search" />
+  </div>
+</form>
 <table border="1" width="100%">
   <tr>
-    <th>ID</th>
-    <th>Title</th>
-    <th>Visibility</th>
+    <th width="10%">ID</th>
+    <th width="75%">Title</th>
+    <th width="15%">Visibility</th>
   </tr>
   {% for p in probs %}
   <tr>

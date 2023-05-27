@@ -24,11 +24,11 @@ def ls():
     my_probs = sa.select(ProblemManager.problem_id).where(
         ProblemManager.manager_id == user_id
     )
-    probs = db.session.execute(
-        sa.select(Problem).where(
-            (Problem.visibility == "Public") | Problem.id.in_(my_probs)
-        )
-    ).scalars()
+    pred = (Problem.visibility == "Public") | Problem.id.in_(my_probs)
+    search_kw = request.args.get("search", "")
+    if search_kw:
+        pred &= (Problem.id == search_kw) | Problem.title.like(f"%{search_kw}%")
+    probs = db.session.execute(sa.select(Problem).where(pred)).scalars()
     return render_template("problem/list.html", probs=probs)
 
 
