@@ -181,7 +181,7 @@ def show_problem(contest_id: int, idx: int):
         .where(Contest.id == contest_id)
     ).one()
     now = datetime.datetime.now()
-    if not (c.start_time <= now) and not is_manager(contest_id):
+    if not (c.start_time and c.start_time <= now) and not is_manager(contest_id):
         abort(403)
     cp = db.session.execute(
         sa.select(ContestProblem.problem_id, ContestProblem.score)
@@ -209,7 +209,9 @@ def show_problem(contest_id: int, idx: int):
         contest_info={
             "id": contest_id,
             "idx": idx,
-            "is_running": c.start_time <= now < c.end_time,
+            "is_running": c.start_time
+            and c.end_time
+            and c.start_time <= now < c.end_time,
             "full_score": cp.score,
             "submission": sub,
         },
@@ -300,7 +302,9 @@ def list_submission(contest_id: int):
         .where(pred)
         .order_by(Submission.id.desc())
     )
-    return render_template("submission/list.html", submissions=submissions, contest_id=contest_id)
+    return render_template(
+        "submission/list.html", submissions=submissions, contest_id=contest_id
+    )
 
 
 @bp.route("/show_submission/<int:submission_id>")
