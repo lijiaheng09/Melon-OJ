@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+import sqlalchemy.orm
 import sqlalchemy_utils
 from flask_sqlalchemy import SQLAlchemy
 
@@ -99,4 +100,24 @@ class ContestLastSubmission(db.Model):
     )
     __table__ = sqlalchemy_utils.create_view(
         "contest_last_submission", selectable, db.metadata
+    )
+
+
+class HighestSubmission(db.Model):
+    __sub1 = sqlalchemy.orm.aliased(Submission)
+    selectable = sa.select(Submission).where(
+        Submission.id
+        == (
+            sa.select(__sub1.id)
+            .where(
+                (__sub1.problem_id == Submission.problem_id)
+                & (__sub1.user_id == Submission.user_id)
+            )
+            .order_by(__sub1.score.desc(), __sub1.id.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
+    )
+    __table__ = sqlalchemy_utils.create_view(
+        "highest_submission", selectable, db.metadata
     )

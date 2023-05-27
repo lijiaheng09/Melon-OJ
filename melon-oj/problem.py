@@ -10,7 +10,7 @@ from flask import (
     redirect,
     url_for,
 )
-from .db import db, Problem, User, ProblemManager, Submission
+from .db import db, Problem, User, ProblemManager, Submission, HighestSubmission
 from . import auth
 import sqlalchemy as sa
 import sqlalchemy.exc
@@ -28,7 +28,23 @@ def ls():
     search_kw = request.args.get("search", "")
     if search_kw:
         pred &= (Problem.id == search_kw) | Problem.title.like(f"%{search_kw}%")
-    probs = db.session.execute(sa.select(Problem).where(pred)).scalars()
+    probs = db.session.execute(
+        sa.select(
+            Problem.id.label("problem_id"),
+            Problem.title,
+            HighestSubmission.id.label("submission_id"),
+            HighestSubmission.score,
+        )
+        .select_from(
+            sa.outerjoin(
+                Problem,
+                HighestSubmission,
+                (Problem.id == HighestSubmission.problem_id)
+                & (HighestSubmission.user_id == user_id),
+            )
+        )
+        .where(pred)
+    )
     return render_template("problem/list.html", probs=probs)
 
 
@@ -66,8 +82,21 @@ def show(problem_id: int, contest_info=None):
     ismgr = is_manager(problem_id)
     if contest_info is None and p.visibility != "Public" and not ismgr:
         abort(403)
+    if contest_info is None:
+        sub = (
+            db.session.execute(
+                sa.select(HighestSubmission.id, HighestSubmission.score)
+                .select_from(HighestSubmission)
+                .where(
+                    (HighestSubmission.problem_id == problem_id)
+                    & (HighestSubmission.user_id == g.user.id)
+                )
+            ).one_or_none()
+            if g.user
+            else None
+        )
     return render_template(
-        "problem/show.html", p=p, is_manager=ismgr, contest_info=contest_info
+        "problem/show.html", p=p, sub=sub, is_manager=ismgr, contest_info=contest_info
     )
 
 

@@ -9,6 +9,9 @@
 {% endif %}
 {{p.title}}{% endblock %}</h1>
 <div>
+{% if sub %}
+<a href="{{ url_for('submission.show', submission_id=sub.id) }}">My Score: {{ sub.score if sub.score != None else '--' }}</a>
+{% endif %}
 {% if contest_info %}
 <a href="{{ url_for('contest.show', contest_id=contest_info['id']) }}">Contest</a>
 {% endif %}
