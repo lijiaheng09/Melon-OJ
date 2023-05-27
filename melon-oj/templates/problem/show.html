@@ -24,9 +24,12 @@
   {% endif %}
   {% if contest_info %}
   {% if g.user %}
-  <a href="{{ url_for('contest.list_submission', contest_id=contest_info['id'], problem=contest_info['idx'], user=g.user.name) }}">My Submissions</a>
+  <a
+    href="{{ url_for('contest.list_submission', contest_id=contest_info['id'], problem=contest_info['idx'], user=g.user.name) }}">
+    My Submissions</a>
   {% endif %}
-  <a href="{{ url_for('contest.list_submission', contest_id=contest_info['id'], problem=contest_info['idx']) }}">Submissions</a>
+  <a href="{{ url_for('contest.list_submission', contest_id=contest_info['id'], problem=contest_info['idx']) }}">
+    Submissions</a>
   {% else %}
   {% if g.user %}
   <a href="{{ url_for('submission.ls', problem=p.id, user=g.user.name) }}">My Submissions</a>
@@ -46,7 +49,9 @@
 {% endblock %}
 
 {% block content %}
-<div id="statement">{{ p.statement|safe }}</div>
+<div id="statement">
+  <textarea id="statement_text" hidden>{{ p.statement }}</textarea>
+</div>
 <form method="post" action="{{
     url_for('contest.submit_problem', contest_id=contest_info['id'], idx=contest_info['idx'])
     if contest_info
@@ -62,8 +67,7 @@
 <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
 </script>
 <script>
-  ele = document.getElementById('statement');
-  ele.innerHTML = marked.parse(ele.innerHTML);
+  document.getElementById('statement').innerHTML = marked.parse(document.getElementById('statement_text').value);
   window.MathJax = {
     tex: {
       inlineMath: [['$', '$'], ['\\(', '\\)']]
