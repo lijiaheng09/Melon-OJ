@@ -12,5 +12,6 @@ MarkupSafe==2.1.2
 mysql-connector-python==8.0.33
 protobuf==3.20.3
 SQLAlchemy==2.0.13
+SQLAlchemy-Utils==0.41.1
 typing_extensions==4.5.0
 Werkzeug==2.3.4
