@@ -267,7 +267,9 @@ def list_submission(contest_id: int):
     if not (c.start_time <= now) and not is_manager(contest_id):
         abort(403)
     pred = (
-        (ContestSubmission.contest_id == contest_id)
+        (ContestProblem.contest_id == contest_id)
+        & (ContestProblem.idx == ContestSubmission.idx)
+        & (ContestSubmission.contest_id == contest_id)
         & (ContestSubmission.submission_id == Submission.id)
         & (Submission.problem_id == Problem.id)
         & (Submission.user_id == User.id)
@@ -283,6 +285,7 @@ def list_submission(contest_id: int):
         pred &= Submission.verdict == search_verdict
     submissions = db.session.execute(
         sa.select(
+            ContestProblem.score.label("full_score"),
             ContestSubmission.idx,
             Submission.id,
             Submission.problem_id,
@@ -293,7 +296,7 @@ def list_submission(contest_id: int):
             Submission.score,
             Submission.time,
         )
-        .select_from(ContestSubmission, Submission, Problem, User)
+        .select_from(ContestProblem, ContestSubmission, Submission, Problem, User)
         .where(pred)
         .order_by(Submission.id.desc())
     )
