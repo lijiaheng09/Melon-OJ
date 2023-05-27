@@ -5,10 +5,13 @@
 {% endblock %}
 
 {% block content %}
-<form method="post" action="{{ url_for('submission.ls')}}">
-  Problem ID: <input name="problem_id" value="{{ problem_id or '' }}">
-  User ID: <input name="user_id" value="{{ user_id or '' }}">
-  <input type="submit" value="Search!">
+<form>
+  <div align="center">
+    Problem Title: <input style="width: 20%" name="problem" value="{{ request.args['problem'] }}" />
+    User Name:    <input style="width: 15%" name="user" value="{{ request.args['user'] }}" />
+    Verdict: <input style="width: 15%" name="verdict" value="{{ request.args['verdict'] }}" />
+    <input style="width: 15%" type="submit" value="Search" />
+  </div>
 </form>
 
 <table border="1" width="100%">

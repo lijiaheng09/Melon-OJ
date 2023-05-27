@@ -17,20 +17,8 @@ import sqlalchemy as sa
 bp = Blueprint("submission", __name__, url_prefix="/submission")
 
 
-@bp.route("/list", methods=["GET", "POST"])
+@bp.route("/list")
 def ls():
-    problem_id = sa.select(Problem.id)
-    user_id = sa.select(User.id)
-    if request.method == "POST":
-        if request.form["problem_id"]:
-            problem_id = sa.select(Problem.id).where(
-                Problem.id == int(request.form["problem_id"])
-            )
-        if request.form["user_id"]:
-            user_id = sa.select(User.id).where(
-                User.id == int(request.form["user_id"])
-            )
-    print(problem_id)
     my_user_id = g.user.id if g.user is not None else None
     my_probs = sa.select(Problem.id).where(
         (Problem.visibility == "Public") | Problem.id.in_(
@@ -39,6 +27,16 @@ def ls():
             )
         )
     )
+    pred = (Submission.problem_id == Problem.id) & (Submission.user_id == User.id) & (Problem.id.in_(my_probs))
+    search_problem = request.args.get("problem", "")
+    if search_problem:
+        pred &= (Problem.id == search_problem) | Problem.title.like(f"%{search_problem}%")
+    search_user = request.args.get("user", "")
+    if search_user:
+        pred &= (User.id == search_user) | User.name.like(f"%{search_user}%")
+    search_verdict = request.args.get("verdict", "")
+    if search_verdict:
+        pred &= Submission.verdict.like(f"%{search_verdict}%")
     submissions = db.session.execute(
         sa.select(
             Submission.id,
@@ -46,16 +44,10 @@ def ls():
             Submission.user_id, User.name,
             Submission.verdict, Submission.score, Submission.time
         ).select_from(Submission, Problem, User).where(
-            (Submission.problem_id == Problem.id) & (Submission.user_id == User.id) & (Problem.id.in_(my_probs))
-            & (Problem.id.in_(problem_id)) & (User.id.in_(user_id))
+            pred
         ).order_by(Submission.id.desc())
     )
-    return render_template(
-        "submission/list.html",
-        submissions=submissions,
-        problem_id=request.form["problem_id"],
-        user_id=request.form["user_id"]
-    )
+    return render_template("submission/list.html", submissions=submissions)
 
 
 @bp.route("/show/<int:submission_id>")
