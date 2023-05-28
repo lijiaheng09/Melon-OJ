@@ -1,5 +1,7 @@
 # Melon OJ
 
+Midterm project of the course _Introduction to Database Systems (Honor Track)_, Spring 2023. ([GitHub](https://github.com/Jumpmelon/Melon-OJ/tree/midterm-project))
+
 ## Usage
 
 ### Prepare
