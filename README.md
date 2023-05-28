@@ -2,6 +2,19 @@
 
 ## Usage
 
+### Prepare
+
+#### Project & Python environment
+
+- Clone the repository.
+- Create and activate a Python 3 virtual environment (e.g. with [Anaconda](https://anaconda.org/) or Python [venv](https://docs.python.org/3/library/venv.html)). The project is developed under Python 3.11.3.
+- Install the package requirements (e.g. `pip install -r requirements.txt`).
+
+#### Database
+
+- Setup a SQL database server (e.g. [MySQL](https://www.mysql.com/); others may also be supported with extra installation of Python connector packages).
+- Create an empty database for the project.
+
 ### Configure
 
 Put configurations in file `instance/config.py`. For example:
